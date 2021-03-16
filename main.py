@@ -2,7 +2,7 @@ import os
 from PIL import Image as im
 import windnd as wd
 from tkinter import *
-from tkinter import font, ttk, messagebox
+from tkinter import font, ttk, messagebox, filedialog
 
 
 # pyinstaller -w main.py -i D:\mixed_file\daima\Python\Image_FC\icon_im.ico
@@ -23,7 +23,7 @@ class W(Tk):
         self.f1 = Frame(self)
         self.lb_path = Label(self.f1, text='路径', font=self.f)
         self.inp = Entry(self.f1, bd=3, font=self.f, textvariable=self.input_path)
-        self.list_path = Button(self.f1, text='确定', command=self.local_list)
+        self.list_path = Button(self.f1, text='…', command=self.get_dir)
         self.listbox = Listbox(self, bd=5, font=self.f, selectmode=EXTENDED)
         self.f2 = Frame(self)
         self.f3 = Frame(self)
@@ -34,7 +34,7 @@ class W(Tk):
         self.sure = Button(self.f3, text='转换', command=self.edit)
         self.is_rename = Checkbutton(self.f3, text='是否批量重命名文件', variable=self.is_renamee, command=self.set_is_rename)
         self.is_clear = Checkbutton(self.f3, text='是否删除原文件', variable=self.is_delete)
-        self.inp_name = Entry(self.f3, bd=3, font=self.f, textvariable=self.input_name)
+        self.inp_name = Entry(self.f3, bd=3, font=self.f, textvariable=self.input_name, state=DISABLED)
 
         # 布局
         self.f1.pack(side='top')
@@ -47,8 +47,9 @@ class W(Tk):
         self.com_f1.grid(row=0, column=1)
         self.lb_format2.grid(row=0, column=2)
         self.com_f2.grid(row=0, column=3)
-        self.sure.grid(row=0, column=2)
         self.is_rename.grid(row=0, column=0)
+        self.inp_name.grid(row=0, column=1)
+        self.sure.grid(row=0, column=2)
         self.is_clear.grid(row=0, column=3)
         self.f3.pack()
         self.demo()
@@ -59,7 +60,9 @@ class W(Tk):
         wd.hook_dropfiles(self, func=self.dragged_files)
         self.com_f1.set(self.box1[0])
         self.com_f2.set(self.box2[0])
+        self.inp.bind("<Return>", self.local_list)
 
+    # 转换
     def edit(self):
         l = []
         if self.com_f2.get() == '':
@@ -119,7 +122,8 @@ class W(Tk):
                             os.remove(x)
         messagebox.showinfo('转换成功', '成功生成图片:\n' + '\n'.join(l))
 
-    def local_list(self):
+    # 获得路径文件列表
+    def local_list(self, a):
         self.listbox.delete(0, END)
         p = self.input_path.get()
         try:
@@ -153,11 +157,18 @@ class W(Tk):
                 self.box1.append(fmat)
         self.com_f1['values'] = self.box1
 
+    # 设置是否重命名
     def set_is_rename(self):
         if self.is_renamee.get():
-            self.inp_name.grid(row=0, column=1)
+            self.inp_name.config(state='normal')
         else:
-            self.inp_name.grid_forget()
+            self.inp_name.config(state='disabled')
+
+    # 获得路径
+    def get_dir(self):
+        dir_name = filedialog.askdirectory()
+        self.input_path.set(dir_name)
+        self.local_list(None)
 
 
 if __name__ == '__main__':
