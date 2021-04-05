@@ -4,14 +4,13 @@ import windnd as wd
 from tkinter import *
 from tkinter import font, ttk, messagebox, filedialog
 
-
-# pyinstaller -w main.py -i D:\mixed_file\daima\Python\Image_FC\icon_im.ico
+# venv\Scripts\pyinstaller -w main.py -i D:\mixed_file\daima\Python\Image_FC\icon_im.ico
 
 class W(Tk):
     def __init__(self):
         super().__init__()
         self.f = font.Font(family='楷体', size=15)
-        self.title('图片格式转换1.0')
+        self.title('图片格式转换2.0')
         self.wm_attributes('-topmost', 1)  # 置顶
         self.box1 = ['.*']
         self.box2 = ['.jpeg', '.jpg', '.png', '.ico']
@@ -24,6 +23,7 @@ class W(Tk):
         self.lb_path = Label(self.f1, text='路径', font=self.f)
         self.inp = Entry(self.f1, bd=3, font=self.f, textvariable=self.input_path)
         self.list_path = Button(self.f1, text='…', command=self.get_dir)
+        self.clear = Button(self.f1, text="清空", command=self.f_clear)
         self.listbox = Listbox(self, bd=5, font=self.f, selectmode=EXTENDED)
         self.f2 = Frame(self)
         self.f3 = Frame(self)
@@ -41,6 +41,7 @@ class W(Tk):
         self.lb_path.grid(row=0, column=0)
         self.inp.grid(row=0, column=1)
         self.list_path.grid(row=0, column=2)
+        self.clear.grid(row=0, column=3)
         self.listbox.pack(fill='both')
         self.f2.pack()
         self.lb_format1.grid(row=0, column=0)
@@ -77,7 +78,7 @@ class W(Tk):
                 except FileNotFoundError:
                     messagebox.showerror('Error', os.path.join(self.input_path.get(), x) + '不存在')
                     return
-                name = x.split('.')[0] + self.com_f2.get()
+                name = os.path.join(self.input_path.get(), x.split('.')[0] + self.com_f2.get())
                 if self.is_renamee.get():
                     name = os.path.join(self.input_path.get(), self.inp_name.get() + '_' + str(i) + self.com_f2.get())
                 while os.path.exists(name):
@@ -94,6 +95,9 @@ class W(Tk):
                     if self.is_delete.get():
                         os.remove(x)
         else:
+            if len(self.input_path.get()) == 0:
+                messagebox.showerror("Error", "请选择转换文件！")
+                return
             for x in self.listbox.get(0, END):
                 if os.path.splitext(x)[1] == self.com_f1.get() or self.com_f1.get() == '.*':
                     print(x)
@@ -102,13 +106,14 @@ class W(Tk):
                     except FileNotFoundError:
                         messagebox.showerror('Error', x + '不存在')
                         return
-                    name = x.split('.')[0] + self.com_f2.get()
+                    path_one = os.path.split(x)[0]
+                    name = os.path.splitext(x)[0] + self.com_f2.get()
                     if self.is_renamee.get():
-                        name = os.path.join(self.input_path.get(),
+                        name = os.path.join(path_one,
                                             self.inp_name.get() + '_' + str(i) + self.com_f2.get())
                     while os.path.exists(name):
                         i += 1
-                        name = os.path.join(self.input_path.get(),
+                        name = os.path.join(path_one,
                                             self.inp_name.get() + '_' + str(i) + self.com_f2.get())
                     print(name)
                     try:
@@ -169,6 +174,13 @@ class W(Tk):
         dir_name = filedialog.askdirectory()
         self.input_path.set(dir_name)
         self.local_list(None)
+
+    # 刷新
+    def f_clear(self):
+        self.inp.delete(0,END)
+        self.inp_name.delete(0,END)
+        self.listbox.delete(0, END)
+        print("clear")
 
 
 if __name__ == '__main__':
