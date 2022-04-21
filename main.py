@@ -1,8 +1,11 @@
 import os
+from datetime import datetime
+
 from PIL import Image as im
 import windnd as wd
 from tkinter import *
 from tkinter import font, ttk, messagebox, filedialog
+
 
 # venv\Scripts\pyinstaller -w main.py -i D:\mixed_file\daima\Python\Image_FC\icon_im.ico
 
@@ -10,10 +13,10 @@ class W(Tk):
     def __init__(self):
         super().__init__()
         self.f = font.Font(family='楷体', size=15)
-        self.title('图片格式转换2.0')
+        self.title('图片格式转换3.0')
         self.wm_attributes('-topmost', 1)  # 置顶
         self.box1 = ['.*']
-        self.box2 = ['.jpeg', '.jpg', '.png', '.ico']
+        self.box2 = ['.jpg', '.png', '.jpeg', '.ico']
         self.is_delete = BooleanVar(value=False)
         self.input_path = StringVar()
         self.input_name = StringVar()
@@ -70,20 +73,21 @@ class W(Tk):
             messagebox.showwarning('警告', '转换后格式为空')
             return
         i = 0
-        if str(self.listbox.curselection()) != '()':
+        if len(self.input_path.get()) != 0:  # 选择路径
+            if str(self.listbox.curselection()) == '()':
+                messagebox.showerror("Error", "请选择转换文件！")
+                return
             for x in self.listbox.selection_get().split('\n'):
+                x = os.path.join(self.input_path.get(), x)
                 print(x)
                 try:
-                    image = im.open(os.path.join(self.input_path.get(), x))
+                    image = im.open(x)
                 except FileNotFoundError:
-                    messagebox.showerror('Error', os.path.join(self.input_path.get(), x) + '不存在')
+                    messagebox.showerror('Error', x + '不存在')
                     return
-                name = os.path.join(self.input_path.get(), x.split('.')[0] + self.com_f2.get())
+                name = x.split('.')[0] + self.com_f2.get()
                 if self.is_renamee.get():
-                    name = os.path.join(self.input_path.get(), self.inp_name.get() + '_' + str(i) + self.com_f2.get())
-                while os.path.exists(name):
-                    i += 1
-                    name = os.path.join(self.input_path.get(), self.inp_name.get() + '_' + str(i) + self.com_f2.get())
+                    name = self.rename(self.input_path.get(), self.inp_name.get())
                 print(name)
                 try:
                     image.save(name)
@@ -94,10 +98,7 @@ class W(Tk):
                     l.append(name)
                     if self.is_delete.get():
                         os.remove(x)
-        else:
-            if len(self.input_path.get()) == 0:
-                messagebox.showerror("Error", "请选择转换文件！")
-                return
+        else:  # 拖动文件
             for x in self.listbox.get(0, END):
                 if os.path.splitext(x)[1] == self.com_f1.get() or self.com_f1.get() == '.*':
                     print(x)
@@ -109,12 +110,7 @@ class W(Tk):
                     path_one = os.path.split(x)[0]
                     name = os.path.splitext(x)[0] + self.com_f2.get()
                     if self.is_renamee.get():
-                        name = os.path.join(path_one,
-                                            self.inp_name.get() + '_' + str(i) + self.com_f2.get())
-                    while os.path.exists(name):
-                        i += 1
-                        name = os.path.join(path_one,
-                                            self.inp_name.get() + '_' + str(i) + self.com_f2.get())
+                        name = self.rename(path_one, self.inp_name.get())
                     print(name)
                     try:
                         image.save(name)
@@ -126,6 +122,27 @@ class W(Tk):
                         if self.is_delete.get():
                             os.remove(x)
         messagebox.showinfo('转换成功', '成功生成图片:\n' + '\n'.join(l))
+
+    def rename(self, path, pattern: str):
+        i = 0
+        time = datetime.now()
+        name = pattern.replace('%Y', str(time.year))
+        name = name.replace('%M', str(time.month))
+        name = name.replace('%D', str(time.day))
+        name = name.replace('%h', str(time.hour))
+        name = name.replace('%m', str(time.minute))
+        name = name.replace('%s', str(time.second))
+        r = name.find("%f")
+        if r != -1 and r+2 < len(name):
+            name = name.replace('%f', str(time.microsecond % pow(10, r)))
+        else:
+            name = name.replace('%f', str(time.microsecond))
+        pattern = name
+        name = pattern.replace('%d', str(i))
+        while os.path.exists(os.path.join(path, name + self.com_f2.get())):
+            i += 1
+            name = pattern.replace('%d', str(i))
+        return os.path.join(path, name + self.com_f2.get())
 
     # 获得路径文件列表
     def local_list(self, a):
@@ -177,8 +194,8 @@ class W(Tk):
 
     # 刷新
     def f_clear(self):
-        self.inp.delete(0,END)
-        self.inp_name.delete(0,END)
+        self.inp.delete(0, END)
+        self.inp_name.delete(0, END)
         self.listbox.delete(0, END)
         print("clear")
 
