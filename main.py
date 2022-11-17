@@ -16,7 +16,10 @@ def save(image, name):
         return
     try:
         temp = name.split('.')
-        name = temp[0] + '.' + image.format
+        if image.format == 'JPEG':
+            name = temp[0] + '.jpg'
+        else:
+            name = temp[0] + '.' + image.format
         image.save(name)
     except OSError as e:
         print(e)
@@ -460,6 +463,7 @@ class EW(Toplevel):
         name = self.path.split('.')[0] + '_.' + self.path.split('.')[1]
         img = self.image.crop((self.x1, self.y1, self.x2, self.y2))
         img = img.resize((int(img.size[0] / self.percent), int(img.size[1] / self.percent)), im.ANTIALIAS)
+        img.format = self.image.format
         save(img, name)
 
     def autoRound(self):
@@ -627,7 +631,7 @@ class W(Tk):  # 图片预览
         super().__init__()
         # self.config(bg='black')
         self.f = font.Font(family='楷体', size=13)
-        self.title('yooki图片处理器v5.1')
+        self.title('yooki图片处理器v5.2') # version
         self.iconbitmap('icon_im.ico')
         center(self, self.width - self.panel_width, self.height)
         self.resizable(0, 0)  # 固定窗口
